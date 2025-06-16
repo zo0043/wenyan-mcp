@@ -56,7 +56,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => {
                     properties: {
                         content: {
                             type: "string",
-                            description: "The raw Markdown content to publish.",
+                            description: "The original Markdown content to publish, preserving its frontmatter (if present).",
                         },
                         theme_id: {
                             type: "string",

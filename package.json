@@ -12,7 +12,7 @@
   ],
   "scripts": {
     "build": "tsc -b && pnpm copy-assets",
-    "copy-assets": "cp src/main.js dist/main.js && cp -r src/themes dist/themes && cp -r src/highlight dist/highlight",
+    "copy-assets": "cp src/main.js dist/main.js && cp -r src/themes dist/themes && cp -r src/highlight dist/highlight && cp src/mac_style.css dist/mac_style.css",
     "watch": "tsc --watch",
     "inspector": "npx @modelcontextprotocol/inspector node dist/index.js",
     "test": "npx vitest run"
