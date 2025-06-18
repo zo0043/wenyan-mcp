@@ -3,7 +3,7 @@
     "wenyan-mcp": {
       "name": "文颜公众号助手",
       "type": "http",
-      "url": "http://localhost:3000",
+      "url": "http://localhost:8080/sse",
       "env": {
         "WECHAT_APP_ID": "your_app_id",
         "WECHAT_APP_SECRET": "your_app_secret",

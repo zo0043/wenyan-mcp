@@ -37,7 +37,7 @@ app.get('/health', (_req: Request, res: Response) => {
 });
 
 // SSE endpoint for real-time updates
-app.get('/events', (req: Request, res: Response) => {
+app.get('/sse', (req: Request, res: Response) => {
     res.setHeader('Content-Type', 'text/event-stream');
     res.setHeader('Cache-Control', 'no-cache');
     res.setHeader('Connection', 'keep-alive');
