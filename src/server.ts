@@ -5,7 +5,7 @@ import { Theme, themes } from './theme.js';
 // @ts-ignore
 import { initMarkdownRenderer, renderMarkdown, handleFrontMatter } from './main.js';
 import { publishToDraft } from './publish.js';
-import { uploadMedia, getMedia } from './upload.js';
+import { uploadMedia, getMedia, uploadPermanentMedia } from './upload.js';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
@@ -254,6 +254,49 @@ app.get('/media/:mediaId', async (req: Request, res: Response) => {
         });
     } catch (error) {
         log('error', 'Media download error:', error);
+        res.status(500).json({
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error occurred'
+        });
+    }
+});
+
+// 上传永久素材
+app.post('/material/upload', upload.single('media'), async (req: Request, res: Response) => {
+    try {
+        log('info', 'Permanent material upload request received');
+        if (!req.file) {
+            log('warn', 'No file uploaded');
+            return res.status(400).json({ error: 'No file uploaded' });
+        }
+        const type = req.body.type || 'image';
+        if (!['image', 'voice', 'video', 'thumb'].includes(type)) {
+            log('warn', `Invalid material type: ${type}`);
+            return res.status(400).json({ error: 'Invalid material type' });
+        }
+        let description;
+        if (type === 'video' && req.body.description) {
+            try {
+                description = JSON.parse(req.body.description);
+            } catch (e) {
+                log('warn', 'Invalid description JSON');
+                return res.status(400).json({ error: 'Invalid description JSON' });
+            }
+        }
+        log('debug', `Uploading permanent material file: ${req.file.path}, type: ${type}`);
+        const result = await uploadPermanentMedia(
+            process.env.WECHAT_ACCESS_TOKEN || '',
+            type as any,
+            req.file.path,
+            description
+        );
+        log('info', 'Permanent material uploaded successfully', result);
+        res.json({
+            success: true,
+            ...result
+        });
+    } catch (error) {
+        log('error', 'Permanent material upload error:', error);
         res.status(500).json({
             success: false,
             error: error instanceof Error ? error.message : 'Unknown error occurred'

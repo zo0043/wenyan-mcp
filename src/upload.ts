@@ -86,4 +86,48 @@ export async function getMedia(accessToken: string, mediaId: string, savePath: s
         }
         throw error;
     }
+}
+
+/**
+ * 上传永久素材到微信公众号
+ * @param accessToken 访问令牌
+ * @param type 媒体文件类型，分别有图片（image）、语音（voice）、视频（video）和缩略图（thumb）
+ * @param filePath 本地文件路径
+ * @param description 视频类型时的描述信息（JSON字符串，包含title和introduction）
+ * @returns 上传结果
+ */
+export async function uploadPermanentMedia(
+    accessToken: string,
+    type: 'image' | 'voice' | 'video' | 'thumb',
+    filePath: string,
+    description?: { title: string; introduction: string }
+): Promise<any> {
+    const url = `https://api.weixin.qq.com/cgi-bin/material/add_material?access_token=${accessToken}&type=${type}`;
+
+    if (!fs.existsSync(filePath)) {
+        throw new Error(`File not found: ${filePath}`);
+    }
+
+    const form = new FormData();
+    form.append('media', fs.createReadStream(filePath));
+    if (type === 'video' && description) {
+        form.append('description', JSON.stringify(description));
+    }
+
+    try {
+        const response = await axios.post(url, form, {
+            headers: {
+                ...form.getHeaders()
+            }
+        });
+        if (response.data.errcode) {
+            throw new Error(`Upload failed: ${response.data.errmsg}`);
+        }
+        return response.data;
+    } catch (error) {
+        if (axios.isAxiosError(error)) {
+            throw new Error(`Upload failed: ${error.message}`);
+        }
+        throw error;
+    }
 } 
