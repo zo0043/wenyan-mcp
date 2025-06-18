@@ -19,6 +19,7 @@ import { Theme, themes } from "./theme.js";
 // @ts-ignore
 import { initMarkdownRenderer, renderMarkdown, handleFrontMatter } from "./main.js";
 import { publishToDraft } from "./publish.js";
+import { startServer } from './server.js';
 
 /**
  * Create an MCP server with capabilities for resources (to list/read notes),
@@ -149,3 +150,6 @@ main().catch((error) => {
     console.error("Server error:", error);
     process.exit(1);
 });
+
+// Start the HTTP server
+startServer();

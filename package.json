@@ -15,11 +15,15 @@
     "copy-assets": "cp src/main.js dist/main.js && cp -r src/themes dist/themes && cp -r src/highlight dist/highlight && cp src/mac_style.css dist/mac_style.css",
     "watch": "tsc --watch",
     "inspector": "npx @modelcontextprotocol/inspector node dist/index.js",
-    "test": "npx vitest run"
+    "test": "npx vitest run",
+    "start": "node dist/index.js",
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "0.6.0",
+    "cors": "^2.8.5",
     "css-tree": "^3.1.0",
+    "express": "^4.18.2",
     "formdata-node": "^6.0.3",
     "front-matter": "^4.0.2",
     "highlight.js": "^11.11.1",
@@ -29,10 +33,14 @@
     "mathjax-full": "^3.2.2"
   },
   "devDependencies": {
+    "@types/cors": "^2.8.17",
     "@types/css-tree": "^2.3.10",
+    "@types/express": "^4.17.21",
     "@types/jsdom": "^21.1.7",
     "@types/node": "^20.11.24",
+    "ts-node-dev": "^2.0.0",
     "typescript": "^5.3.3",
     "vitest": "^3.2.3"
-  }
+  },
+  "packageManager": "pnpm@9.14.4+sha512.c8180b3fbe4e4bca02c94234717896b5529740a6cbadf19fa78254270403ea2f27d4e1d46a08a0f56c89b63dc8ebfd3ee53326da720273794e6200fcf0d184ab"
 }
