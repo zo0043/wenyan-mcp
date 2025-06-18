@@ -129,6 +129,7 @@ app.post('/publish', async (req: Request, res: Response) => {
     try {
         log('info', 'Publish article request received');
         const { content, theme_id } = req.body;
+        log('debug', 'Publish request params:', { content, theme_id });
 
         if (!content) {
             log('warn', 'Publish request missing content');

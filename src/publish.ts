@@ -2,6 +2,7 @@ import { JSDOM } from "jsdom";
 import { FormData, File } from 'formdata-node';
 import { fileFromPath } from 'formdata-node/file-from-path';
 import path from "path";
+import { log } from './logger.js';
 
 const tokenUrl = "https://api.weixin.qq.com/cgi-bin/token";
 const publishUrl = "https://api.weixin.qq.com/cgi-bin/draft/add";
@@ -113,6 +114,16 @@ export async function publishToDraft(title: string, content: string, cover: stri
         if (!thumbMediaId) {
             throw new Error("你必须指定一张封面图或者在正文中至少出现一张图片。");
         }
+        log('debug', 'Publish to WeChat request:', {
+            url: `${publishUrl}?access_token=${accessToken.access_token}`,
+            body: {
+                articles: [{
+                    title,
+                    content,
+                    thumb_media_id: thumbMediaId,
+                }]
+            }
+        });
         const response = await fetch(`${publishUrl}?access_token=${accessToken.access_token}`, {
             method: 'POST',
             body: JSON.stringify({
