@@ -1,7 +1,10 @@
 # Build stage
-FROM node:22-alpine AS builder
+FROM docker.xuanyuan.me/library/node:24 AS builder
 
 WORKDIR /app
+
+# Install pnpm
+RUN npm install -g pnpm
 
 # Copy dependency files
 COPY package*.json ./
@@ -9,18 +12,21 @@ COPY tsconfig.json ./
 
 # Install dependencies
 RUN npm config set registry https://mirrors.cloud.tencent.com/npm/
-RUN npm install
+RUN pnpm install
 
 # Copy source code
 COPY src ./src
 
 # Build project
-RUN npm run build
+RUN pnpm run build
 
 # Production stage
-FROM node:22-alpine
+FROM docker.xuanyuan.me/library/node:24
 
 WORKDIR /app
+
+# Install pnpm
+RUN npm install -g pnpm
 
 # Copy built files and dependencies
 COPY --from=builder /app/dist ./dist

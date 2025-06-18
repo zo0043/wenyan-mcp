@@ -12,7 +12,7 @@ A Markdown formatting tool that allows AI assistants to apply elegant built-in t
 
 ## Prerequisites
 
-- Node.js 22 or later
+- Node.js 20 or later
 - Docker (optional, for containerized deployment)
 - 微信公众号开发者账号
 
