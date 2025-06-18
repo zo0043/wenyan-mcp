@@ -1,0 +1,37 @@
+{
+  "mcpServers": {
+    "wenyan-mcp": {
+      "name": "文颜公众号助手",
+      "type": "http",
+      "url": "http://localhost:3000",
+      "capabilities": {
+        "tools": {
+          "publish_article": {
+            "description": "使用指定主题格式化 Markdown 文章并发布到微信公众号草稿箱",
+            "inputSchema": {
+              "type": "object",
+              "properties": {
+                "content": {
+                  "type": "string",
+                  "description": "要发布的 Markdown 内容，保留其 frontmatter（如果存在）"
+                },
+                "theme_id": {
+                  "type": "string",
+                  "description": "要使用的主题 ID（例如：default, orangeheart, rainbow, lapis, pie, maize, purple, phycat）"
+                }
+              },
+              "required": ["content"]
+            }
+          },
+          "list_themes": {
+            "description": "列出与 publish_article 工具兼容的主题",
+            "inputSchema": {
+              "type": "object",
+              "properties": {}
+            }
+          }
+        }
+      }
+    }
+  }
+} 
