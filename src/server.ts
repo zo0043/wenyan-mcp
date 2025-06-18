@@ -5,6 +5,10 @@ import { Theme, themes } from './theme.js';
 // @ts-ignore
 import { initMarkdownRenderer, renderMarkdown, handleFrontMatter } from './main.js';
 import { publishToDraft } from './publish.js';
+import { uploadMedia, getMedia } from './upload.js';
+import multer from 'multer';
+import path from 'path';
+import fs from 'fs';
 
 // 配置日志级别
 const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
@@ -171,6 +175,85 @@ app.post('/publish', async (req: Request, res: Response) => {
         });
     } catch (error) {
         log('error', 'Publish error:', error);
+        res.status(500).json({
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error occurred'
+        });
+    }
+});
+
+// 配置文件上传
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/');
+    },
+    filename: function (req, file, cb) {
+        cb(null, Date.now() + path.extname(file.originalname));
+    }
+});
+
+const upload = multer({ storage: storage });
+
+// 上传临时素材
+app.post('/media/upload', upload.single('media'), async (req: Request, res: Response) => {
+    try {
+        log('info', 'Media upload request received');
+        
+        if (!req.file) {
+            log('warn', 'No file uploaded');
+            return res.status(400).json({ error: 'No file uploaded' });
+        }
+
+        const type = req.body.type || 'image';
+        if (!['image', 'voice', 'video', 'thumb'].includes(type)) {
+            log('warn', `Invalid media type: ${type}`);
+            return res.status(400).json({ error: 'Invalid media type' });
+        }
+
+        log('debug', `Uploading media file: ${req.file.path}, type: ${type}`);
+        const result = await uploadMedia(process.env.WECHAT_ACCESS_TOKEN || '', type as any, req.file.path);
+        log('info', 'Media uploaded successfully', { media_id: result.media_id });
+
+        res.json({
+            success: true,
+            media_id: result.media_id,
+            type: result.type,
+            created_at: result.created_at
+        });
+    } catch (error) {
+        log('error', 'Media upload error:', error);
+        res.status(500).json({
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error occurred'
+        });
+    }
+});
+
+// 获取临时素材
+app.get('/media/:mediaId', async (req: Request, res: Response) => {
+    try {
+        log('info', 'Media download request received', { media_id: req.params.mediaId });
+        
+        const mediaId = req.params.mediaId;
+        const savePath = path.join('downloads', `${mediaId}.tmp`);
+
+        log('debug', `Downloading media to: ${savePath}`);
+        await getMedia(process.env.WECHAT_ACCESS_TOKEN || '', mediaId, savePath);
+        log('info', 'Media downloaded successfully');
+
+        res.download(savePath, (err) => {
+            if (err) {
+                log('error', 'Error sending file:', err);
+            }
+            // 删除临时文件
+            fs.unlink(savePath, (unlinkErr) => {
+                if (unlinkErr) {
+                    log('error', 'Error deleting temporary file:', unlinkErr);
+                }
+            });
+        });
+    } catch (error) {
+        log('error', 'Media download error:', error);
         res.status(500).json({
             success: false,
             error: error instanceof Error ? error.message : 'Unknown error occurred'
