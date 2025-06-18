@@ -2,6 +2,7 @@ import axios from 'axios';
 import fs from 'fs';
 import path from 'path';
 import FormData from 'form-data';
+import { getAccessToken } from './wechatToken.js';
 
 interface UploadResponse {
     type: string;
@@ -16,7 +17,12 @@ interface UploadResponse {
  * @param filePath 本地文件路径
  * @returns 上传结果
  */
-export async function uploadMedia(accessToken: string, type: 'image' | 'voice' | 'video' | 'thumb', filePath: string): Promise<UploadResponse> {
+export async function uploadMedia(
+    _accessToken: string, // 不再直接用参数
+    type: 'image' | 'voice' | 'video' | 'thumb',
+    filePath: string
+): Promise<UploadResponse> {
+    const accessToken = await getAccessToken();
     const url = `https://api.weixin.qq.com/cgi-bin/media/upload?access_token=${accessToken}&type=${type}`;
     
     // 检查文件是否存在
@@ -58,7 +64,12 @@ export async function uploadMedia(accessToken: string, type: 'image' | 'voice' |
  * @param mediaId 媒体文件ID
  * @param savePath 保存路径
  */
-export async function getMedia(accessToken: string, mediaId: string, savePath: string): Promise<void> {
+export async function getMedia(
+    _accessToken: string, // 不再直接用参数
+    mediaId: string,
+    savePath: string
+): Promise<void> {
+    const accessToken = await getAccessToken();
     const url = `https://api.weixin.qq.com/cgi-bin/media/get?access_token=${accessToken}&media_id=${mediaId}`;
     
     try {
@@ -97,11 +108,12 @@ export async function getMedia(accessToken: string, mediaId: string, savePath: s
  * @returns 上传结果
  */
 export async function uploadPermanentMedia(
-    accessToken: string,
+    _accessToken: string, // 不再直接用参数
     type: 'image' | 'voice' | 'video' | 'thumb',
     filePath: string,
     description?: { title: string; introduction: string }
 ): Promise<any> {
+    const accessToken = await getAccessToken();
     const url = `https://api.weixin.qq.com/cgi-bin/material/add_material?access_token=${accessToken}&type=${type}`;
 
     if (!fs.existsSync(filePath)) {
