@@ -13,7 +13,7 @@ A Markdown formatting tool that allows AI assistants to apply elegant built-in t
 ## Prerequisites
 
 - Node.js 20 or later
-- Docker (optional, for containerized deployment)
+- Docker and Docker Compose (for containerized deployment)
 - 微信公众号开发者账号
 
 ## Installation
@@ -42,6 +42,41 @@ npm run dev
 ```
 
 ### Docker Deployment
+
+#### Using Docker Compose (Recommended)
+
+1. Create a `.env` file from the example:
+```bash
+cp .env.example .env
+```
+
+2. Edit the `.env` file and fill in your configuration:
+```bash
+# 微信公众号配置
+WECHAT_APP_ID=your_app_id
+WECHAT_APP_SECRET=your_app_secret
+
+# 服务器配置
+PORT=3000
+NODE_ENV=production
+```
+
+3. Create the images directory:
+```bash
+mkdir -p images
+```
+
+4. Start the service:
+```bash
+docker-compose up -d
+```
+
+5. Check the service status:
+```bash
+docker-compose ps
+```
+
+#### Using Docker Directly
 
 1. Build the Docker image:
 ```bash
@@ -87,6 +122,9 @@ Publishes an article to 微信公众号 draft box.
 
 ## Environment Variables
 
+- `WECHAT_APP_ID`: 微信公众号平台的 App ID
+- `WECHAT_APP_SECRET`: 微信公众号平台的 App Secret
+- `HOST_IMAGE_PATH`: 本地图片目录的路径
 - `PORT`: Server port (default: 3000)
 - `NODE_ENV`: Environment mode (development/production)
 
@@ -112,7 +150,10 @@ wenyan-mcp/
 │   └── themes/         # Theme assets
 ├── dist/               # Compiled output
 ├── test/              # Test files
-└── Dockerfile         # Docker configuration
+├── images/            # Local images directory
+├── Dockerfile         # Docker configuration
+├── docker-compose.yml # Docker Compose configuration
+└── .env.example       # Example environment variables
 ```
 
 ## Contributing

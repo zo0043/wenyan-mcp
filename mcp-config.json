@@ -4,6 +4,11 @@
       "name": "文颜公众号助手",
       "type": "http",
       "url": "http://localhost:3000",
+      "env": {
+        "WECHAT_APP_ID": "your_app_id",
+        "WECHAT_APP_SECRET": "your_app_secret",
+        "HOST_IMAGE_PATH": "/path/to/your/images"
+      },
       "capabilities": {
         "tools": {
           "publish_article": {

@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  wenyan-mcp:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: wenyan-mcp
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./images:/app/images
+    environment:
+      - WECHAT_APP_ID=${WECHAT_APP_ID}
+      - WECHAT_APP_SECRET=${WECHAT_APP_SECRET}
+      - HOST_IMAGE_PATH=/app/images
+      - PORT=3000
+      - NODE_ENV=production
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
+      interval: 30s
+      timeout: 30s
+      retries: 3
+      start_period: 5s 
