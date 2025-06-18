@@ -23,7 +23,7 @@ services:
       - HOST_IMAGE_PATH=/app/images
       
       # 日志配置
-      - LOG_LEVEL=${LOG_LEVEL:-info}
+      - LOG_LEVEL=${LOG_LEVEL:-debug}
       
       # 安全配置
       - ENABLE_CORS=${ENABLE_CORS:-true}
