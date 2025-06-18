@@ -11,11 +11,29 @@ services:
     volumes:
       - ./images:/app/images
     environment:
+      # 微信公众号配置
       - WECHAT_APP_ID=${WECHAT_APP_ID}
       - WECHAT_APP_SECRET=${WECHAT_APP_SECRET}
+      
+      # 服务器配置
+      - PORT=${PORT:-3000}
+      - NODE_ENV=${NODE_ENV:-production}
+      
+      # 图片存储配置
       - HOST_IMAGE_PATH=/app/images
-      - PORT=3000
-      - NODE_ENV=production
+      
+      # 日志配置
+      - LOG_LEVEL=${LOG_LEVEL:-info}
+      
+      # 安全配置
+      - ENABLE_CORS=${ENABLE_CORS:-true}
+      
+      # 超时配置
+      - API_TIMEOUT=${API_TIMEOUT:-30000}
+      
+      # 缓存配置
+      - ENABLE_CACHE=${ENABLE_CACHE:-true}
+      - CACHE_TTL=${CACHE_TTL:-3600}
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:3000/health"]
