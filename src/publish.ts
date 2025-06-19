@@ -20,6 +20,7 @@ type UploadResponse = {
 };
 
 async function uploadMaterial(type: string, fileData: Blob | File, fileName: string, accessToken: string): Promise<UploadResponse> {
+    log('info', `uploadMaterial started ${type} ${fileName} ${accessToken}`);
     const form = new FormData();
     form.append("media", fileData, fileName);
     const response = await fetch(`${uploadUrl}?access_token=${accessToken}&type=${type}`, {
