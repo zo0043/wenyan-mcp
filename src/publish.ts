@@ -11,29 +11,13 @@ const appId = process.env.WECHAT_APP_ID || "";
 const appSecret = process.env.WECHAT_APP_SECRET || "";
 const hostImagePath = process.env.HOST_IMAGE_PATH || "";
 const dockerImagePath = "/mnt/host-downloads";
-
+import { getAccessToken } from './wechatToken.js';
 
 
 type UploadResponse = {
     media_id: string;
     url: string
 };
-
-async function fetchAccessToken() {
-    try {
-        const response = await fetch(`${tokenUrl}?grant_type=client_credential&appid=${appId}&secret=${appSecret}`);
-        const data = await response.json();
-        if (data.access_token) {
-            return data;
-        } else if (data.errcode) {
-            throw new Error(`获取 Access Token 失败，错误码：${data.errcode}，${data.errmsg}`);
-        } else {
-            throw new Error(`获取 Access Token 失败: ${data}`);
-        }
-    } catch (error) {
-        throw error;
-    }
-}
 
 async function uploadMaterial(type: string, fileData: Blob | File, fileName: string, accessToken: string): Promise<UploadResponse> {
     const form = new FormData();
@@ -99,15 +83,15 @@ async function uploadImages(content: string, accessToken: string): Promise<strin
 
 export async function publishToDraft(title: string, content: string, cover: string) {
     try {
-        const accessToken = await fetchAccessToken();
-        const firstImageId = await uploadImages(content, accessToken.access_token);
+        const accessToken = await getAccessToken();
+        const firstImageId = await uploadImages(content, accessToken);
         let thumbMediaId = "";
         if (cover) {
-            const resp = await uploadImage(cover, accessToken.access_token, "cover.jpg");
+            const resp = await uploadImage(cover, accessToken, "cover.jpg");
             thumbMediaId = resp.media_id;
         } else {
             if (firstImageId.startsWith("https://mmbiz.qpic.cn")) {
-                const resp = await uploadImage(firstImageId, accessToken.access_token, "cover.jpg");
+                const resp = await uploadImage(firstImageId, accessToken, "cover.jpg");
                 thumbMediaId = resp.media_id;
             } else {
                 thumbMediaId = firstImageId;
@@ -118,7 +102,7 @@ export async function publishToDraft(title: string, content: string, cover: stri
         }
         log('info', `publishToDraft started ${title} ${content} ${thumbMediaId}`);
         log('info', 'Publish to WeChat request:', {
-            url: `${publishUrl}?access_token=${accessToken.access_token}`,
+            url: `${publishUrl}?access_token=${accessToken}`,
             body: {
                 articles: [{
                     title,
@@ -127,7 +111,7 @@ export async function publishToDraft(title: string, content: string, cover: stri
                 }]
             }
         });
-        const response = await fetch(`${publishUrl}?access_token=${accessToken.access_token}`, {
+        const response = await fetch(`${publishUrl}?access_token=${accessToken}`, {
             method: 'POST',
             body: JSON.stringify({
                 articles: [{
