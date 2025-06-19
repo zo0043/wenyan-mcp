@@ -3,6 +3,9 @@ import { FormData, File } from 'formdata-node';
 import { fileFromPath } from 'formdata-node/file-from-path';
 import path from "path";
 import { log } from './logger.js';
+import fs from 'fs/promises';
+import { existsSync, mkdirSync } from 'fs';
+import { getAccessToken } from './wechatToken.js';
 
 const tokenUrl = "https://api.weixin.qq.com/cgi-bin/token";
 const publishUrl = "https://api.weixin.qq.com/cgi-bin/draft/add";
@@ -11,8 +14,6 @@ const appId = process.env.WECHAT_APP_ID || "";
 const appSecret = process.env.WECHAT_APP_SECRET || "";
 const hostImagePath = process.env.HOST_IMAGE_PATH || "";
 const dockerImagePath = "/mnt/host-downloads";
-import { getAccessToken } from './wechatToken.js';
-
 
 type UploadResponse = {
     media_id: string;
@@ -40,17 +41,30 @@ async function uploadMaterial(type: string, fileData: Blob | File, fileName: str
     return data;
 }
 
+async function saveBufferToFile(buffer: ArrayBuffer, filePath: string): Promise<void> {
+    const nodeBuffer = Buffer.from(buffer);
+    await fs.writeFile(filePath, nodeBuffer);
+}
+
 async function uploadImage(imageUrl: string, accessToken: string, fileName?: string): Promise<UploadResponse> {
+    const imagesDir = path.resolve(process.cwd(), 'images');
+    if (!existsSync(imagesDir)) {
+        mkdirSync(imagesDir);
+    }
     if (imageUrl.startsWith("http")) {
         const response = await fetch(imageUrl);
         if (!response.ok || !response.body) {
             throw new Error(`Failed to download image from URL: ${imageUrl}`);
         }
         const fileNameFromUrl = path.basename(imageUrl.split("?")[0]);
-        const ext = path.extname(fileNameFromUrl);
+        const ext = path.extname(fileNameFromUrl) || '.jpg';
         const imageName = fileName ?? (ext === "" ? `${fileNameFromUrl}.jpg` : fileNameFromUrl);
         const buffer = await response.arrayBuffer();
-        return await uploadMaterial('image', new Blob([buffer]), imageName, accessToken);
+        const uniqueName = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}_${imageName}`;
+        const localImagePath = path.join(imagesDir, uniqueName);
+        await saveBufferToFile(buffer, localImagePath);
+        const file = await fileFromPath(localImagePath);
+        return await uploadMaterial('image', file, uniqueName, accessToken);
     } else {
         const localImagePath = hostImagePath ? imageUrl.replace(hostImagePath, dockerImagePath) : imageUrl;
         const fileName = path.basename(localImagePath);
