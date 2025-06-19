@@ -141,8 +141,7 @@ export async function publishToDraft(title: string, content: string, cover: stri
         if (!thumbMediaId) {
             throw new Error("你必须指定一张封面图或者在正文中至少出现一张图片。");
         }
-        log('info',
-            'start publish to wechat ${title} ${content} ${thumbMediaId}');
+        log('info', `publishToDraft started ${title} ${content} ${thumbMediaId}`);
         log('info', 'Publish to WeChat request:', {
             url: `${publishUrl}?access_token=${accessToken.access_token}`,
             body: {
@@ -172,6 +171,7 @@ export async function publishToDraft(title: string, content: string, cover: stri
             throw new Error(`上传到公众号草稿失败: ${data}`);
         }
     } catch (error) {
+        log('error', 'publishToDraft error', error);
         throw error;
     }
 }
