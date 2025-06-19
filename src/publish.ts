@@ -2,7 +2,6 @@ import { JSDOM } from "jsdom";
 import { FormData, File } from 'formdata-node';
 import { fileFromPath } from 'formdata-node/file-from-path';
 import path from "path";
-import { log } from './logger.js';
 
 const tokenUrl = "https://api.weixin.qq.com/cgi-bin/token";
 const publishUrl = "https://api.weixin.qq.com/cgi-bin/draft/add";
@@ -11,6 +10,34 @@ const appId = process.env.WECHAT_APP_ID || "";
 const appSecret = process.env.WECHAT_APP_SECRET || "";
 const hostImagePath = process.env.HOST_IMAGE_PATH || "";
 const dockerImagePath = "/mnt/host-downloads";
+
+
+// 配置日志级别
+const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
+const LOG_LEVELS = {
+    debug: 0,
+    info: 1,
+    warn: 2,
+    error: 3
+};
+
+// 日志函数
+function log(level: 'debug' | 'info' | 'warn' | 'error', message: string, data?: any) {
+    const currentLevel = LOG_LEVELS[LOG_LEVEL as keyof typeof LOG_LEVELS] || 1;
+    const messageLevel = LOG_LEVELS[level];
+    
+    if (messageLevel >= currentLevel) {
+        const timestamp = new Date().toISOString();
+        const logMessage = `[${timestamp}] [${level.toUpperCase()}] ${message}`;
+        
+        if (data) {
+            console.log(logMessage, data);
+        } else {
+            console.log(logMessage);
+        }
+    }
+}
+
 
 type UploadResponse = {
     media_id: string;
@@ -114,6 +141,8 @@ export async function publishToDraft(title: string, content: string, cover: stri
         if (!thumbMediaId) {
             throw new Error("你必须指定一张封面图或者在正文中至少出现一张图片。");
         }
+        log('info',
+            'start publish to wechat ${title} ${content} ${thumbMediaId}');
         log('info', 'Publish to WeChat request:', {
             url: `${publishUrl}?access_token=${accessToken.access_token}`,
             body: {
