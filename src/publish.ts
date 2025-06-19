@@ -23,6 +23,7 @@ async function uploadMaterial(type: string, fileData: Blob | File, fileName: str
     log('info', `uploadMaterial started ${type} ${fileName} ${accessToken}`);
     const form = new FormData();
     form.append("media", fileData, fileName);
+    log('info', `uploadMaterial form ${form}`);
     const response = await fetch(`${uploadUrl}?access_token=${accessToken}&type=${type}`, {
         method: 'POST',
         body: form as any,
@@ -41,14 +42,18 @@ async function uploadMaterial(type: string, fileData: Blob | File, fileName: str
 }
 
 async function uploadImage(imageUrl: string, accessToken: string, fileName?: string): Promise<UploadResponse> {
+    log('info', `uploadImage started ${imageUrl} ${accessToken} ${fileName}`);
     if (imageUrl.startsWith("http")) {
         const response = await fetch(imageUrl);
         if (!response.ok || !response.body) {
             throw new Error(`Failed to download image from URL: ${imageUrl}`);
         }
         const fileNameFromUrl = path.basename(imageUrl.split("?")[0]);
+        log('info', `uploadImage fileNameFromUrl ${fileNameFromUrl}`);
         const ext = path.extname(fileNameFromUrl);
+        log('info', `uploadImage ext ${ext}`);
         const imageName = fileName ?? (ext === "" ? `${fileNameFromUrl}.jpg` : fileNameFromUrl);
+        log('info', `uploadImage imageName ${imageName}`);
         const buffer = await response.arrayBuffer();
         return await uploadMaterial('image', new Blob([buffer]), imageName, accessToken);
     } else {
