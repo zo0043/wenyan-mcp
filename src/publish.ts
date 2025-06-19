@@ -1,11 +1,11 @@
 import { JSDOM } from "jsdom";
-import { FormData, File } from 'formdata-node';
-import { fileFromPath } from 'formdata-node/file-from-path';
 import path from "path";
 import { log } from './logger.js';
-import fs from 'fs/promises';
+import fs from 'fs';
 import { existsSync, mkdirSync } from 'fs';
 import { getAccessToken } from './wechatToken.js';
+import axios from 'axios';
+import FormData from 'form-data';
 
 const tokenUrl = "https://api.weixin.qq.com/cgi-bin/token";
 const publishUrl = "https://api.weixin.qq.com/cgi-bin/draft/add";
@@ -20,31 +20,29 @@ type UploadResponse = {
     url: string
 };
 
-async function uploadMaterial(type: string, fileData: Blob | File, fileName: string, accessToken: string): Promise<UploadResponse> {
+async function uploadMaterial(type: string, filePath: string, fileName: string, accessToken: string): Promise<UploadResponse> {
     log('info', `uploadMaterial started ${type} ${fileName} ${accessToken}`);
+    if (!fs.existsSync(filePath)) {
+        throw new Error(`File not found: ${filePath}`);
+    }
     const form = new FormData();
-    form.append("media", fileData, fileName);
-    log('info', `uploadMaterial form ${form}`);
-    const response = await fetch(`${uploadUrl}?access_token=${accessToken}&type=${type}`, {
-        method: 'POST',
-        body: form as any,
+    form.append('media', fs.createReadStream(filePath));
+    const response = await axios.post(`${uploadUrl}?access_token=${accessToken}&type=${type}`, form, {
+        headers: {
+            ...form.getHeaders()
+        }
     });
-    if (!response.ok) {
-        const errorText = await response.text();
-        throw new Error(`上传失败: ${response.status} ${errorText}`);
+    if (response.data.errcode) {
+        throw new Error(`上传失败，错误码：${response.data.errcode}，错误信息：${response.data.errmsg}`);
     }
-    const data = await response.json();
-    if (data.errcode) {
-        throw new Error(`上传失败，错误码：${data.errcode}，错误信息：${data.errmsg}`);
-    }
-    const result = data.url.replace("http://", "https://");
-    data.url = result;
-    return data;
+    const result = response.data.url?.replace("http://", "https://") || '';
+    response.data.url = result;
+    return response.data;
 }
 
 async function saveBufferToFile(buffer: ArrayBuffer, filePath: string): Promise<void> {
     const nodeBuffer = Buffer.from(buffer);
-    await fs.writeFile(filePath, nodeBuffer);
+    await fs.promises.writeFile(filePath, nodeBuffer);
 }
 
 async function uploadImage(imageUrl: string, accessToken: string, fileName?: string): Promise<UploadResponse> {
@@ -67,13 +65,11 @@ async function uploadImage(imageUrl: string, accessToken: string, fileName?: str
         const uniqueName = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}_${imageName}`;
         const localImagePath = path.join(imagesDir, uniqueName);
         await saveBufferToFile(buffer, localImagePath);
-        const file = await fileFromPath(localImagePath);
-        return await uploadMaterial('image', file, uniqueName, accessToken);
+        return await uploadMaterial('image', localImagePath, uniqueName, accessToken);
     } else {
         const localImagePath = hostImagePath ? imageUrl.replace(hostImagePath, dockerImagePath) : imageUrl;
         const fileName = path.basename(localImagePath);
-        const file = await fileFromPath(localImagePath);
-        return await uploadMaterial('image', file, fileName, accessToken);
+        return await uploadMaterial('image', localImagePath, fileName, accessToken);
     }
 }
 
