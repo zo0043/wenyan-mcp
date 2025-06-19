@@ -24,6 +24,7 @@ async function uploadMaterial(type: string, fileData: Blob | File, fileName: str
     log('info', `uploadMaterial started ${type} ${fileName} ${accessToken}`);
     const form = new FormData();
     form.append("media", fileData, fileName);
+    log('info', `uploadMaterial form ${form}`);
     const response = await fetch(`${uploadUrl}?access_token=${accessToken}&type=${type}`, {
         method: 'POST',
         body: form as any,
@@ -57,8 +58,11 @@ async function uploadImage(imageUrl: string, accessToken: string, fileName?: str
             throw new Error(`Failed to download image from URL: ${imageUrl}`);
         }
         const fileNameFromUrl = path.basename(imageUrl.split("?")[0]);
+        log('info', `uploadImage fileNameFromUrl ${fileNameFromUrl}`);
         const ext = path.extname(fileNameFromUrl) || '.jpg';
+        log('info', `uploadImage ext ${ext}`);
         const imageName = fileName ?? (ext === "" ? `${fileNameFromUrl}.jpg` : fileNameFromUrl);
+        log('info', `uploadImage imageName ${imageName}`);
         const buffer = await response.arrayBuffer();
         const uniqueName = `${Date.now()}_${Math.random().toString(36).slice(2, 8)}_${imageName}`;
         const localImagePath = path.join(imagesDir, uniqueName);
