@@ -9,32 +9,7 @@ import { uploadMedia, getMedia, uploadPermanentMedia } from './upload.js';
 import multer from 'multer';
 import path from 'path';
 import fs from 'fs';
-
-// 配置日志级别
-const LOG_LEVEL = process.env.LOG_LEVEL || 'info';
-const LOG_LEVELS = {
-    debug: 0,
-    info: 1,
-    warn: 2,
-    error: 3
-};
-
-// 日志函数
-function log(level: 'debug' | 'info' | 'warn' | 'error', message: string, data?: any) {
-    const currentLevel = LOG_LEVELS[LOG_LEVEL as keyof typeof LOG_LEVELS] || 1;
-    const messageLevel = LOG_LEVELS[level];
-    
-    if (messageLevel >= currentLevel) {
-        const timestamp = new Date().toISOString();
-        const logMessage = `[${timestamp}] [${level.toUpperCase()}] ${message}`;
-        
-        if (data) {
-            console.log(logMessage, data);
-        } else {
-            console.log(logMessage);
-        }
-    }
-}
+import { log } from './logger.js';
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -319,6 +294,6 @@ export function startServer() {
     app.listen(port, () => {
         log('info', `Server is running on port ${port}`);
         log('info', `Environment: ${process.env.NODE_ENV}`);
-        log('info', `Log level: ${LOG_LEVEL}`);
+        log('info', `Log level: ${process.env.LOG_LEVEL}`);
     });
 } 
