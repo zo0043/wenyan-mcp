@@ -114,7 +114,7 @@ export async function publishToDraft(title: string, content: string, cover: stri
         if (!thumbMediaId) {
             throw new Error("你必须指定一张封面图或者在正文中至少出现一张图片。");
         }
-        log('debug', 'Publish to WeChat request:', {
+        log('info', 'Publish to WeChat request:', {
             url: `${publishUrl}?access_token=${accessToken.access_token}`,
             body: {
                 articles: [{
