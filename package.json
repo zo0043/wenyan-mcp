@@ -17,7 +17,7 @@
     "inspector": "npx @modelcontextprotocol/inspector node dist/index.js",
     "test": "npx vitest run",
     "start": "node dist/index.js",
-    "dev": "ts-node-dev --esm --respawn --transpile-only src/index.ts"
+    "dev": "NODE_OPTIONS='--loader ts-node/esm' ts-node-dev --respawn --transpile-only src/index.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "0.6.0",
