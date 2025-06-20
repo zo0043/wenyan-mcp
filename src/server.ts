@@ -102,12 +102,64 @@ app.get('/themes', (_req: Request, res: Response) => {
     res.json(themeList);
 });
 
+// Preview endpoint - 新增专门的预览端点
+app.post('/preview', async (req: Request, res: Response) => {
+    try {
+        log('info', 'Preview request received');
+        const { content, theme_id } = req.body;
+        log('debug', 'Preview request params:', { content: content?.substring(0, 100) + '...', theme_id });
+
+        if (!content) {
+            log('warn', 'Preview request missing content');
+            return res.status(400).json({ error: 'Content is required' });
+        }
+
+        let theme: Theme | undefined = themes["default"];
+        if (theme_id) {
+            theme = themes[theme_id];
+            if (!theme) {
+                theme = Object.values(themes).find(
+                    theme => theme.name.toLowerCase() === theme_id.toLowerCase()
+                );
+            }
+        }
+
+        if (!theme) {
+            log('warn', `Invalid theme ID: ${theme_id}`);
+            return res.status(400).json({ error: 'Invalid theme ID' });
+        }
+
+        log('debug', 'Processing front matter for preview');
+        const preHandlerContent = handleFrontMatter(content);
+        log('debug', 'Front matter processed:', {
+            title: preHandlerContent.title,
+            hasCover: !!preHandlerContent.cover
+        });
+
+        log('debug', 'Rendering markdown for preview');
+        const html = await renderMarkdown(preHandlerContent.body, theme.id);
+        
+        log('info', 'Preview HTML generated successfully');
+        res.json({
+            success: true,
+            html: html,
+            title: preHandlerContent.title ?? "Untitled"
+        });
+    } catch (error) {
+        log('error', 'Preview error:', error);
+        res.status(500).json({
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error occurred'
+        });
+    }
+});
+
 // Publish article endpoint
 app.post('/publish', async (req: Request, res: Response) => {
     try {
         log('info', 'Publish article request received');
-        const { content, theme_id, preview_only } = req.body;
-        log('debug', 'Publish request params:', { content, theme_id, preview_only });
+        const { content, theme_id } = req.body;
+        log('debug', 'Publish request params:', { content: content?.substring(0, 100) + '...', theme_id });
 
         if (!content) {
             log('warn', 'Publish request missing content');
@@ -141,17 +193,7 @@ app.post('/publish', async (req: Request, res: Response) => {
         log('debug', 'Rendering markdown');
         const html = await renderMarkdown(preHandlerContent.body, theme.id);
         
-        // 如果只是预览，直接返回HTML
-        if (preview_only) {
-            log('info', 'Returning preview HTML');
-            return res.json({
-                success: true,
-                html: html,
-                title: preHandlerContent.title ?? "Untitled"
-            });
-        }
-
-        // 否则发布到草稿箱
+        // 发布到草稿箱
         const title = preHandlerContent.title ?? "Untitled";
         const cover = preHandlerContent.cover ?? "";
 

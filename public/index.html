@@ -156,8 +156,8 @@
         .preview-content {
             height: 100%;
             overflow-y: auto;
-            padding: 2rem;
-            background: #fff;
+            padding: 1rem;
+            background: #f8f9fa;
         }
 
         .preview-phone {
@@ -167,6 +167,13 @@
             border-radius: 8px;
             box-shadow: 0 0 20px rgba(0,0,0,0.1);
             overflow: hidden;
+            min-height: 500px;
+        }
+
+        .preview-phone-content {
+            padding: 1rem;
+            font-size: 14px;
+            line-height: 1.6;
         }
 
         .loading {
@@ -206,6 +213,11 @@
             padding: 1rem;
             margin: 1rem 0;
             display: none;
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
         }
 
         @media (max-width: 768px) {
@@ -252,6 +264,46 @@
         @keyframes pulse {
             0%, 100% { opacity: 1; }
             50% { opacity: 0.5; }
+        }
+
+        /* 确保预览内容的样式正确显示 */
+        .preview-phone-content img {
+            max-width: 100%;
+            height: auto;
+        }
+
+        .preview-phone-content pre {
+            background: #f8f9fa;
+            padding: 1rem;
+            border-radius: 4px;
+            overflow-x: auto;
+            font-size: 12px;
+        }
+
+        .preview-phone-content blockquote {
+            border-left: 4px solid #ddd;
+            margin: 1rem 0;
+            padding-left: 1rem;
+            color: #666;
+        }
+
+        .preview-phone-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 12px;
+        }
+
+        .preview-phone-content table th,
+        .preview-phone-content table td {
+            border: 1px solid #ddd;
+            padding: 0.5rem;
+            text-align: left;
+        }
+
+        .preview-phone-content table th {
+            background: #f8f9fa;
+            font-weight: bold;
         }
     </style>
 </head>
@@ -306,7 +358,9 @@
             <div class="panel-content">
                 <div class="preview-content">
                     <div class="preview-phone">
-                        <div id="preview-area" class="loading">正在加载预览...</div>
+                        <div class="preview-phone-content">
+                            <div id="preview-area" class="loading">正在加载预览...</div>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -422,10 +476,10 @@ result = qa_chain.run("如何优化模型性能？")
 向量相似度计算公式：
 
 $$
-\text{similarity}(A, B) = \frac{A \cdot B}{||A|| \times ||B||}
+\\text{similarity}(A, B) = \\frac{A \\cdot B}{||A|| \\times ||B||}
 $$
 
-其中 $A$ 和 $B$ 是两个向量，$A \cdot B$ 是点积。
+其中 $A$ 和 $B$ 是两个向量，$A \\cdot B$ 是点积。
 
 ## 总结
 
@@ -461,15 +515,14 @@ $$
             previewArea.innerHTML = '<div class="loading">正在渲染预览...</div>';
 
             try {
-                const response = await fetch('/publish', {
+                const response = await fetch('/preview', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
                     body: JSON.stringify({
                         content: content,
-                        theme_id: themeId,
-                        preview_only: true
+                        theme_id: themeId
                     })
                 });
 
@@ -479,12 +532,11 @@ $$
 
                 const result = await response.json();
                 
-                if (result.success) {
-                    // 这里应该返回渲染后的HTML，我们需要修改后端
-                    previewArea.innerHTML = result.html || '<div class="error">预览内容为空</div>';
+                if (result.success && result.html) {
+                    previewArea.innerHTML = result.html;
                     statusIndicator.className = 'status-indicator status-ready';
                 } else {
-                    throw new Error(result.error || '预览失败');
+                    throw new Error(result.error || '预览内容为空');
                 }
             } catch (error) {
                 console.error('Preview error:', error);
