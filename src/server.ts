@@ -37,6 +37,9 @@ app.use((req: Request, res: Response, next) => {
 app.use(cors());
 app.use(express.json());
 
+// 静态文件服务
+app.use(express.static('public'));
+
 // Create MCP server instance
 const mcpServer = new Server(
     {
@@ -103,8 +106,8 @@ app.get('/themes', (_req: Request, res: Response) => {
 app.post('/publish', async (req: Request, res: Response) => {
     try {
         log('info', 'Publish article request received');
-        const { content, theme_id } = req.body;
-        log('debug', 'Publish request params:', { content, theme_id });
+        const { content, theme_id, preview_only } = req.body;
+        log('debug', 'Publish request params:', { content, theme_id, preview_only });
 
         if (!content) {
             log('warn', 'Publish request missing content');
@@ -137,6 +140,18 @@ app.post('/publish', async (req: Request, res: Response) => {
 
         log('debug', 'Rendering markdown');
         const html = await renderMarkdown(preHandlerContent.body, theme.id);
+        
+        // 如果只是预览，直接返回HTML
+        if (preview_only) {
+            log('info', 'Returning preview HTML');
+            return res.json({
+                success: true,
+                html: html,
+                title: preHandlerContent.title ?? "Untitled"
+            });
+        }
+
+        // 否则发布到草稿箱
         const title = preHandlerContent.title ?? "Untitled";
         const cover = preHandlerContent.cover ?? "";
 
@@ -293,7 +308,8 @@ app.use((err: Error, req: Request, res: Response, next: Function) => {
 export function startServer() {
     app.listen(port, () => {
         log('info', `Server is running on port ${port}`);
+        log('info', `Web interface available at http://localhost:${port}`);
         log('info', `Environment: ${process.env.NODE_ENV}`);
         log('info', `Log level: ${process.env.LOG_LEVEL}`);
     });
-} 
+}
